@@ -92,6 +92,31 @@ mae_lasso = mean_absolute_error(y_test, y_pred_lasso)
 rmse_lasso = np.sqrt(mean_squared_error(y_test, y_pred_lasso))
 r2_lasso = r2_score(y_test, y_pred_lasso)
 
+import time
+
+# OLS
+start = time.time()
+lr.fit(X_train, y_train)
+lr_time = time.time() - start
+y_pred_lr = lr.predict(X_test)
+mse_lr = mean_squared_error(y_test, y_pred_lr)
+
+# Ridge
+start = time.time()
+ridge.fit(X_train, y_train)
+ridge_time = time.time() - start
+y_pred_ridge = ridge.predict(X_test)
+mse_ridge = mean_squared_error(y_test, y_pred_ridge)
+ridge_iter = getattr(ridge, 'n_iter_', 'N/A')  # кількість ітерацій
+
+# Lasso
+start = time.time()
+lasso.fit(X_train, y_train)
+lasso_time = time.time() - start
+y_pred_lasso = lasso.predict(X_test)
+mse_lasso = mean_squared_error(y_test, y_pred_lasso)
+lasso_iter = getattr(lasso, 'n_iter_', 'N/A')  # кількість ітерацій
+
 # Вивід результатів
 print("\nLasso-регресія (L1) — результати:")
 print(f"MAE: {mae_lasso:.2f}")
@@ -158,6 +183,11 @@ coef_df = pd.DataFrame({
     "Lasso": lasso.coef_
 })
 
+print("\n🔎 Порівняння часу та метрик:")
+print(f"OLS     → Час: {lr_time:.4f} сек | MSE: {mse_lr:.2f}")
+print(f"Ridge   → Час: {ridge_time:.4f} сек | MSE: {mse_ridge:.2f} | Ітерацій: {ridge_iter}")
+print(f"Lasso   → Час: {lasso_time:.4f} сек | MSE: {mse_lasso:.2f} | Ітерацій: {lasso_iter}")
+
 # Перетворюємо ознаку в індекс і будуємо графік
 coef_df.set_index("Ознака").plot(kind="bar", figsize=(10, 6))
 plt.title("Порівняння коефіцієнтів моделей")
@@ -218,3 +248,16 @@ plt.title("Boxplot абсолютних похибок для моделей")
 plt.grid(True)
 plt.tight_layout()
 plt.show()
+
+metrics_df = pd.DataFrame({
+    "Модель": ["OLS", "Ridge", "Lasso"],
+    "MAE": [mae_lr, mae_ridge, mae_lasso],
+    "RMSE": [rmse_lr, rmse_ridge, rmse_lasso],
+    "MSE": [mse_lr, mse_ridge, mse_lasso],
+    "R²": [r2_lr, r2_ridge, r2_lasso],
+    "Час навчання (сек)": [lr_time, ridge_time, lasso_time],
+    "Кількість ітерацій": ["N/A", ridge_iter, lasso_iter]
+})
+
+metrics_df.to_csv("summary_metrics.csv", index=False, encoding='utf-8-sig')
+print("\n📄 Порівняльну таблицю метрик збережено у 'summary_metrics.csv'")
